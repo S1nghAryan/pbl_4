@@ -18,13 +18,15 @@
         @keyframes flicker { 0%, 100% { background-color: #ffffff; } 50% { background-color: #fca5a5; } }
         .timer-warning { animation: flicker 1s infinite; border: 3px solid #ef4444 !important; color: #b91c1c !important; }
         .timer-stop { background-color: #991b1b !important; color: #ffffff !important; border: 3px solid #f87171 !important; animation: none; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .timer-pulse { animation: pulse 0.5s infinite; }
     </style>
 </head>
-<body onload="startTimer()">
+<body>
 
     <div id="timerContainer" class="fixed bottom-10 right-10 px-8 py-4 rounded-3xl flex items-center gap-4 transition-all">
         <i class="fas fa-hourglass-start text-blue-600 text-2xl" id="timerIcon"></i>
-        <span id="displayTime" class="text-4xl font-black font-mono tracking-tighter">00:00</span>
+        <span id="displayTime" class="text-4xl font-black font-mono tracking-tighter">05:00</span>
     </div>
 
     <nav class="fixed w-full z-50 glass border-b border-slate-800/50 px-8 py-4 flex justify-between items-center">
@@ -49,7 +51,7 @@
         
         <section class="text-center">
             <div class="inline-block px-4 py-1 border border-slate-800 rounded-full text-slate-500 text-[10px] font-mono mb-6 uppercase tracking-widest">ID: 23FE10CSE00346</div>
-            <h1 class="text-6xl md:text-7xl font-extrabold mb-8 uppercase leading-tight"><span class="gradient-text uppercase">The Art of Brevity</span></h1>
+            <h1 class="text-6xl md:text-7xl font-extrabold mb-8 uppercase leading-tight"><span class="gradient-text uppercase">QuickNote</span></h1>
             <h2 class="text-3xl md:text-4xl font-bold mb-8 text-slate-300">Crafting Concise Narratives through RAG-Driven Document Summarization</h2>
             <p class="text-slate-400 max-w-2xl mx-auto italic text-lg leading-relaxed border-l-2 border-blue-500/30 pl-6 text-left">
                 "This research explores how Retrieval-Augmented Generation (RAG) can revolutionize document summarization by combining external knowledge retrieval with generative AI, producing accurate, contextually relevant summaries while minimizing hallucinations."
@@ -306,7 +308,7 @@
                 </div>
                 <div class="glass px-12 py-8 rounded-[2rem] border-b-4 border-slate-700">
                     <p class="text-[9px] font-bold text-slate-400 mb-2 uppercase tracking-widest">Project Guide</p>
-                    <p class="font-black text-xl text-slate-100">[Faculty Name]</p>
+                    <p class="font-black text-xl text-slate-100">Mr. Lav Upadhyay</p>
                     <p class="text-[10px] text-slate-500 mt-1">Department of CSE</p>
                 </div>
             </div>
@@ -349,68 +351,93 @@
     </footer>
 
     <script>
-        // TIMER LOGIC
-        let sec = 0;
-        let timer = null;
+        // 5 MINUTE COUNTDOWN TIMER - Counts down from 5:00 to 0:00
         function startTimer() {
-            timer = setInterval(() => {
-                sec++;
-                let m = Math.floor(sec / 60);
-                let s = sec % 60;
+            let timeRemaining = 300; // 5 minutes = 300 seconds
+            const timer = setInterval(() => {
+                timeRemaining--;
+                
+                let m = Math.floor(timeRemaining / 60);
+                let s = timeRemaining % 60;
                 document.getElementById('displayTime').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                 
-                if (sec >= 480 && sec < 600) { // 8-10 Mins Warning
-                    document.getElementById('timerContainer').classList.add('timer-warning');
+                // Change icon as time progresses
+                if (timeRemaining <= 180 && timeRemaining > 60) { // 3 min to 1 min
                     document.getElementById('timerIcon').classList.replace('fa-hourglass-start', 'fa-hourglass-half');
-                } else if (sec >= 600) { // 10 Mins Stop
+                } else if (timeRemaining <= 60 && timeRemaining > 30) { // Last 1 minute - warning
+                    document.getElementById('timerContainer').classList.add('timer-warning');
+                    document.getElementById('timerIcon').classList.remove('fa-hourglass-start');
+                    document.getElementById('timerIcon').classList.remove('fa-hourglass-half');
+                    document.getElementById('timerIcon').classList.add('fa-hourglass-end');
+                } else if (timeRemaining <= 30 && timeRemaining > 0) { // Last 30 seconds - intense warning
+                    document.getElementById('timerContainer').classList.add('timer-pulse');
+                }
+                
+                // Timer reaches zero
+                if (timeRemaining <= 0) {
                     clearInterval(timer);
-                    document.getElementById('timerContainer').classList.replace('timer-warning', 'timer-stop');
-                    document.getElementById('displayTime').innerText = "10:00";
-                    document.getElementById('timerIcon').classList.replace('fa-hourglass-half', 'fa-hourglass-end');
+                    document.getElementById('timerContainer').classList.remove('timer-warning');
+                    document.getElementById('timerContainer').classList.remove('timer-pulse');
+                    document.getElementById('timerContainer').classList.add('timer-stop');
+                    document.getElementById('displayTime').innerText = "00:00";
+                    document.getElementById('timerIcon').classList.remove('fa-hourglass-start');
+                    document.getElementById('timerIcon').classList.remove('fa-hourglass-half');
+                    document.getElementById('timerIcon').classList.add('fa-hourglass-end');
+                    
+                    // Optional: Play a sound or show alert
+                    // alert('Time is up!');
                 }
             }, 1000);
         }
 
-        // RESULTS CHART - Accuracy Comparison
-        const ctx = document.getElementById('resultsChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Overall\nAccuracy', 'Localized\nQueries', 'Dispersed\nDocuments'],
-                datasets: [{
-                    label: 'Accuracy %',
-                    data: [78, 88, 63],
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'],
-                    borderRadius: 15,
-                    barThickness: 60
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.parsed.y + '% Accuracy';
+        // RESULTS CHART - Initialize after DOM loads
+        function initChart() {
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Overall\nAccuracy', 'Localized\nQueries', 'Dispersed\nDocuments'],
+                    datasets: [{
+                        label: 'Accuracy %',
+                        data: [78, 88, 63],
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'],
+                        borderRadius: 15,
+                        barThickness: 60
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + '% Accuracy';
+                                }
                             }
                         }
-                    }
-                },
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
-                        max: 100,
-                        grid: { color: '#ffffff05' }, 
-                        ticks: { color: '#475569', callback: function(value) { return value + '%'; } }
                     },
-                    x: { 
-                        grid: { display: false }, 
-                        ticks: { color: '#475569' }
+                    scales: { 
+                        y: { 
+                            beginAtZero: true, 
+                            max: 100,
+                            grid: { color: '#ffffff05' }, 
+                            ticks: { color: '#475569', callback: function(value) { return value + '%'; } }
+                        },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { color: '#475569' }
+                        }
                     }
                 }
-            }
+            });
+        }
+
+        // Start everything when DOM is fully loaded
+        window.addEventListener('DOMContentLoaded', function() {
+            startTimer();
+            initChart();
         });
     </script>
 </body>
